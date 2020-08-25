@@ -54125,12 +54125,13 @@ class Releaser {
                 console.warn(d);
                 console.warn('\n\n1.2\n');
                 console.warn(Object.assign(Object.assign({}, params), { ref: `tags/${params.tag_name}` }));
-                yield this.github.git.deleteRef(Object.assign(Object.assign({}, params), { ref: `refs/tags/${params.tag_name}` }));
+                yield this.github.git.deleteRef(Object.assign(Object.assign({}, params), { ref: `tags/${params.tag_name}` }));
                 console.warn('\n\n1.3\n');
                 return d;
             }
             catch (err) {
                 console.log(`\n\nERROR: "${err}"`);
+                console.warn(err);
             }
         });
     }

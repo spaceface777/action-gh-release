@@ -77,12 +77,13 @@ export class Releaser {
       })
       await this.github.git.deleteRef({
         ...params,
-        ref: `refs/tags/${params.tag_name}`,
+        ref: `tags/${params.tag_name}`,
       });
       console.warn('\n\n1.3\n')
       return d;
     } catch(err) {
       console.log(`\n\nERROR: "${err}"`)
+      console.warn(err)
     }
   }
 

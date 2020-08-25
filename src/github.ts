@@ -60,6 +60,19 @@ export class Releaser {
     return this.github.repos.updateRelease(params);
   }
 
+  deleteRelease(params: {
+    owner: string;
+    repo: string;
+    tag_name: string;
+    release_id: number;
+  }) {
+    this.github.git.deleteRef({
+      ...params,
+      ref: `refs/tags/${params.tag_name}`,
+    });
+    return this.github.repos.deleteRelease(params);
+  }
+
   allReleases(params: {
     owner: string;
     repo: string;
@@ -130,12 +143,57 @@ export const release = async (
     const draft = config.input_draft;
     const prerelease = config.input_prerelease;
 
-    const release = await releaser.updateRelease({
+    if (config.input_overwrite) {
+      const release = await releaser.deleteRelease({
+        owner,
+        repo,
+        tag_name,
+        release_id,
+      });
+      return release.data;
+    } else {
+      const release = await releaser.updateRelease({
+        owner,
+        repo,
+        release_id,
+        tag_name,
+        target_commitish,
+        name,
+        body,
+        draft,
+        prerelease,
+      });
+      return release.data;
+    }
+  } catch (error) {
+    if (error.status === 404) {
+      return await createRelease(config, releaser);
+    } else {
+      console.log(
+        `⚠️ Unexpected error fetching GitHub release for tag ${config.github_ref}: ${error}`
+      );
+      throw error;
+    }
+  }
+};
+
+const createRelease = async (
+  config: Config,
+  releaser: Releaser
+): Promise<Release> => {
+  const [owner, repo] = config.github_repository.split("/");
+  const tag_name =
+    config.input_tag_name || config.github_ref.replace("refs/tags/", "");
+  const name = config.input_name || tag_name;
+  const body = releaseBody(config);
+  const draft = config.input_draft;
+  const prerelease = config.input_prerelease;
+  console.log(`👩‍🏭 Creating new GitHub release for tag ${tag_name}...`);
+  try {
+    let release = await releaser.createRelease({
       owner,
       repo,
-      release_id,
       tag_name,
-      target_commitish,
       name,
       body,
       draft,
@@ -143,36 +201,10 @@ export const release = async (
     });
     return release.data;
   } catch (error) {
-    if (error.status === 404) {
-      const tag_name = tag;
-      const name = config.input_name || tag;
-      const body = releaseBody(config);
-      const draft = config.input_draft;
-      const prerelease = config.input_prerelease;
-      console.log(`👩‍🏭 Creating new GitHub release for tag ${tag_name}...`);
-      try {
-        let release = await releaser.createRelease({
-          owner,
-          repo,
-          tag_name,
-          name,
-          body,
-          draft,
-          prerelease,
-        });
-        return release.data;
-      } catch (error) {
-        // presume a race with competing metrix runs
-        console.log(
-          `⚠️ GitHub release failed with status: ${error.status}, retrying...`
-        );
-        return release(config, releaser);
-      }
-    } else {
-      console.log(
-        `⚠️ Unexpected error fetching GitHub release for tag ${config.github_ref}: ${error}`
-      );
-      throw error;
-    }
+    // presume a race with competing metrix runs
+    console.log(
+      `⚠️ GitHub release failed with status: ${error.status}, retrying...`
+    );
+    return createRelease(config, releaser);
   }
 };

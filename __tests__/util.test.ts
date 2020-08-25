@@ -86,6 +86,7 @@ describe("util", () => {
         input_body_path: undefined,
         input_create_zip: false,
         input_draft: false,
+        input_overwrite: false,
         input_prerelease: false,
         input_files: [],
         input_name: undefined,

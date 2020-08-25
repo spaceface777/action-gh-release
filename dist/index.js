@@ -54119,8 +54119,9 @@ class Releaser {
     }
     deleteRelease(params) {
         try {
+            const d = this.github.repos.deleteRelease(params);
             this.github.git.deleteRef(Object.assign(Object.assign({}, params), { ref: `refs/tags/${params.tag_name}` }));
-            return this.github.repos.deleteRelease(params);
+            return d;
         }
         catch (err) {
             console.log('\n\nERROR');
@@ -54192,13 +54193,17 @@ exports.release = (config, releaser) => __awaiter(void 0, void 0, void 0, functi
         const draft = config.input_draft;
         const prerelease = config.input_prerelease;
         if (config.input_overwrite) {
-            const release = yield releaser.deleteRelease({
+            console.warn('\n\n1\n');
+            yield releaser.deleteRelease({
                 owner,
                 repo,
                 tag_name,
                 release_id,
             });
-            return release.data;
+            console.warn('\n\n2\n');
+            const rel = yield createRelease(config, releaser);
+            console.warn('\n\n3\n');
+            return rel;
         }
         else {
             const release = yield releaser.updateRelease({

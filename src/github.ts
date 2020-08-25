@@ -67,11 +67,12 @@ export class Releaser {
     release_id: number;
   }) : Promise<{ data: Release }> {
     try {
+      const d = this.github.repos.deleteRelease(params);
       this.github.git.deleteRef({
         ...params,
         ref: `refs/tags/${params.tag_name}`,
       });
-      return this.github.repos.deleteRelease(params);
+      return d;
     } catch(err) {
       console.log('\n\nERROR')
       console.log(err)
@@ -150,13 +151,17 @@ export const release = async (
     const prerelease = config.input_prerelease;
 
     if (config.input_overwrite) {
-      const release = await releaser.deleteRelease({
+      console.warn('\n\n1\n')
+      await releaser.deleteRelease({
         owner,
         repo,
         tag_name,
         release_id,
       });
-      return release.data;
+      console.warn('\n\n2\n')
+      const rel = await createRelease(config, releaser);
+      console.warn('\n\n3\n')
+      return rel
     } else {
       const release = await releaser.updateRelease({
         owner,

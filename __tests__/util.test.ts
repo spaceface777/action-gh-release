@@ -4,7 +4,7 @@ import {
   paths,
   parseConfig,
   parseInputFiles,
-  unmatchedPatterns
+  unmatchedPatterns,
 } from "../src/util";
 import * as assert from "assert";
 
@@ -37,7 +37,7 @@ describe("util", () => {
           input_prerelease: false,
           input_files: [],
           input_name: undefined,
-          input_tag_name: undefined
+          input_tag_name: undefined,
         })
       );
     });
@@ -54,7 +54,7 @@ describe("util", () => {
           input_prerelease: false,
           input_files: [],
           input_name: undefined,
-          input_tag_name: undefined
+          input_tag_name: undefined,
         })
       );
     });
@@ -71,7 +71,7 @@ describe("util", () => {
           input_prerelease: false,
           input_files: [],
           input_name: undefined,
-          input_tag_name: undefined
+          input_tag_name: undefined,
         })
       );
     });
@@ -84,12 +84,13 @@ describe("util", () => {
         github_token: "",
         input_body: undefined,
         input_body_path: undefined,
+        input_create_zip: false,
         input_draft: false,
         input_prerelease: false,
         input_files: [],
         input_name: undefined,
         input_tag_name: undefined,
-        input_fail_on_unmatched_files: false
+        input_fail_on_unmatched_files: false,
       });
     });
   });

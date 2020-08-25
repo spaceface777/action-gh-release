@@ -20,42 +20,7 @@ export interface Release {
   target_commitish: string;
 }
 
-export interface Releaser {
-  getReleaseByTag(params: {
-    owner: string;
-    repo: string;
-    tag: string;
-  }): Promise<{ data: Release }>;
-
-  createRelease(params: {
-    owner: string;
-    repo: string;
-    tag_name: string;
-    name: string;
-    body: string | undefined;
-    draft: boolean | undefined;
-    prerelease: boolean | undefined;
-  }): Promise<{ data: Release }>;
-
-  updateRelease(params: {
-    owner: string;
-    repo: string;
-    release_id: number;
-    tag_name: string;
-    target_commitish: string;
-    name: string;
-    body: string | undefined;
-    draft: boolean | undefined;
-    prerelease: boolean | undefined;
-  }): Promise<{ data: Release }>;
-
-  allReleases(params: {
-    owner: string;
-    repo: string;
-  }): AsyncIterableIterator<{ data: Release[] }>;
-}
-
-export class GitHubReleaser implements Releaser {
+export class Releaser {
   github: GitHub;
   constructor(github: GitHub) {
     this.github = github;
@@ -111,7 +76,7 @@ export const asset = (path: string): ReleaseAsset => {
     name: basename(path),
     mime: mimeOrDefault(path),
     size: lstatSync(path).size,
-    file: readFileSync(path)
+    file: readFileSync(path),
   };
 };
 
@@ -130,10 +95,10 @@ export const upload = async (
     url,
     headers: {
       "content-length": size,
-      "content-type": mime
+      "content-type": mime,
     },
     name,
-    file
+    file,
   });
 };
 
@@ -148,27 +113,20 @@ export const release = async (
     // you can't get a an existing draft by tag
     // so we must find one in the list of all releases
     if (config.input_draft) {
-      for await (const response of releaser.allReleases({
-        owner,
-        repo
-      })) {
-        let release = response.data.find(release => release.tag_name === tag);
+      for await (const response of releaser.allReleases({ owner, repo })) {
+        let release = response.data.find((release) => release.tag_name === tag);
         if (release) {
           return release;
         }
       }
     }
-    let existingRelease = await releaser.getReleaseByTag({
-      owner,
-      repo,
-      tag
-    });
+    let existingRelease = await releaser.getReleaseByTag({ owner, repo, tag });
 
     const release_id = existingRelease.data.id;
     const target_commitish = existingRelease.data.target_commitish;
     const tag_name = tag;
     const name = config.input_name || tag;
-    const body = `${existingRelease.data.body}\n${releaseBody(config)}`;
+    const body = releaseBody(config);
     const draft = config.input_draft;
     const prerelease = config.input_prerelease;
 
@@ -181,7 +139,7 @@ export const release = async (
       name,
       body,
       draft,
-      prerelease
+      prerelease,
     });
     return release.data;
   } catch (error) {
@@ -200,7 +158,7 @@ export const release = async (
           name,
           body,
           draft,
-          prerelease
+          prerelease,
         });
         return release.data;
       } catch (error) {

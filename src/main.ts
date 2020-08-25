@@ -1,8 +1,12 @@
 import { paths, parseConfig, isTag, unmatchedPatterns } from "./util";
-import { release, upload, GitHubReleaser } from "./github";
+import { release, upload, Releaser } from "./github";
 import { setFailed, setOutput } from "@actions/core";
 import { GitHub } from "@actions/github";
+import Archiver from "archiver";
 import { env } from "process";
+import { createWriteStream } from "fs";
+import { tmpdir } from "os";
+import { join } from "path";
 
 async function run() {
   try {
@@ -12,7 +16,7 @@ async function run() {
     }
     if (config.input_files) {
       const patterns = unmatchedPatterns(config.input_files);
-      patterns.forEach(pattern =>
+      patterns.forEach((pattern) =>
         console.warn(`🤔 Pattern '${pattern}' does not match any files.`)
       );
       if (patterns.length > 0 && config.input_fail_on_unmatched_files) {
@@ -21,7 +25,7 @@ async function run() {
     }
     GitHub.plugin([
       require("@octokit/plugin-throttling"),
-      require("@octokit/plugin-retry")
+      require("@octokit/plugin-retry"),
     ]);
     const gh = new GitHub(config.github_token, {
       throttle: {
@@ -40,18 +44,30 @@ async function run() {
           console.warn(
             `Abuse detected for request ${options.method} ${options.url}`
           );
-        }
-      }
+        },
+      },
     });
-    let rel = await release(config, new GitHubReleaser(gh));
+    let rel = await release(config, new Releaser(gh));
     if (config.input_files) {
       const files = paths(config.input_files);
       if (files.length == 0) {
         console.warn(`🤔 ${config.input_files} not include valid file.`);
       }
-      files.forEach(async path => {
-        await upload(gh, rel.upload_url, path);
-      });
+      if (config.input_create_zip) {
+        const archive = Archiver("zip", { zlib: { level: 9 } }); // Max. compression
+        const out_file = join(tmpdir(), "upload.zip")
+        const out = createWriteStream(out_file)
+        const onerror = () => setFailed('Failed to create zip archive')
+        out.on('close', async () => { await upload(gh, rel.upload_url, out_file) })
+        archive.on('error', onerror)
+        archive.pipe(out)
+        files.forEach(path => archive.append(path))
+        archive.finalize()
+      } else {
+        files.forEach(async (path) => {
+          await upload(gh, rel.upload_url, path);
+        });
+      }
     }
     console.log(`🎉 Release ready at ${rel.html_url}`);
     setOutput("url", rel.html_url);

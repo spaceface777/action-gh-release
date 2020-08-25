@@ -11,6 +11,7 @@ export interface Config {
   input_body?: string;
   input_body_path?: string;
   input_files?: string[];
+  input_create_zip?: boolean;
   input_draft?: boolean;
   input_prerelease?: boolean;
   input_fail_on_unmatched_files?: boolean;
@@ -31,8 +32,8 @@ export const parseInputFiles = (files: string): string[] => {
     (acc, line) =>
       acc
         .concat(line.split(","))
-        .filter(pat => pat)
-        .map(pat => pat.trim()),
+        .filter((pat) => pat)
+        .map((pat) => pat.trim()),
     []
   );
 };
@@ -47,16 +48,17 @@ export const parseConfig = (env: Env): Config => {
     input_body: env.INPUT_BODY,
     input_body_path: env.INPUT_BODY_PATH,
     input_files: parseInputFiles(env.INPUT_FILES || ""),
+    input_create_zip: env.INPUT_CREATE_ZIP === "true",
     input_draft: env.INPUT_DRAFT === "true",
     input_prerelease: env.INPUT_PRERELEASE == "true",
-    input_fail_on_unmatched_files: env.INPUT_FAIL_ON_UNMATCHED_FILES == "true"
+    input_fail_on_unmatched_files: env.INPUT_FAIL_ON_UNMATCHED_FILES == "true",
   };
 };
 
 export const paths = (patterns: string[]): string[] => {
   return patterns.reduce((acc: string[], pattern: string): string[] => {
     return acc.concat(
-      glob.sync(pattern).filter(path => lstatSync(path).isFile())
+      glob.sync(pattern).filter((path) => lstatSync(path).isFile())
     );
   }, []);
 };
@@ -64,7 +66,7 @@ export const paths = (patterns: string[]): string[] => {
 export const unmatchedPatterns = (patterns: string[]): string[] => {
   return patterns.reduce((acc: string[], pattern: string): string[] => {
     return acc.concat(
-      glob.sync(pattern).filter(path => lstatSync(path).isFile()).length == 0
+      glob.sync(pattern).filter((path) => lstatSync(path).isFile()).length == 0
         ? [pattern]
         : []
     );

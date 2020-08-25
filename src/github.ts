@@ -63,26 +63,19 @@ export class Releaser {
   async deleteRelease(params: {
     owner: string;
     repo: string;
-    tag_name: string;
     release_id: number;
+    tag_name: string;
+    target_commitish: string;
+    name: string;
   }) {
     try {
-      console.warn('\n\n1.1\n')
-      const d = await this.github.repos.deleteRelease(params);
-      console.warn(d)
-      console.warn('\n\n1.2\n')
-      console.warn({
-        ...params,
-        ref: `tags/${params.tag_name}`,
-      })
+      await this.github.repos.deleteRelease(params);
       await this.github.git.deleteRef({
         ...params,
         ref: `tags/${params.tag_name}`,
       });
-      console.warn('\n\n1.3\n')
-      return d;
     } catch(err) {
-      console.log(`\n\nERROR: "${err}"`)
+      console.log(`\n\nERROR deleting release:`)
       console.warn(err)
     }
   }
@@ -159,17 +152,15 @@ export const release = async (
 
     console.warn(config)
     if (config.input_overwrite) {
-      console.warn('\n\n1\n')
       await releaser.deleteRelease({
         owner,
         repo,
         tag_name,
         release_id,
+        target_commitish,
+        name,
       });
-      console.warn('\n\n2\n')
-      const rel = await createRelease(config, releaser);
-      console.warn('\n\n3\n')
-      return rel
+      return await createRelease(config, releaser);
     } else {
       const release = await releaser.updateRelease({
         owner,

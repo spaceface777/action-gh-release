@@ -1,7 +1,7 @@
 # https://help.github.com/en/articles/metadata-syntax-for-github-actions
 name: 'GH Release'
 description: 'Github Action for creating Github Releases'
-author: 'softprops'
+author: 'spaceface777'
 inputs:
   body:
     description: 'Note-worthy description of changes in release'
@@ -23,6 +23,9 @@ inputs:
     required: false
   files:
     description: 'Newline-delimited list of path globs for asset files to upload'
+    required: false
+  overwrite:
+    description: 'Whether to overwrite existing tags and releases'
     required: false
   fail_on_unmatched_files:
     description: 'Fails if any of the `files` globs match nothing. Defaults to false'

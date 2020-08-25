@@ -65,12 +65,18 @@ export class Releaser {
     repo: string;
     tag_name: string;
     release_id: number;
-  }) {
-    this.github.git.deleteRef({
-      ...params,
-      ref: `refs/tags/${params.tag_name}`,
-    });
-    return this.github.repos.deleteRelease(params);
+  }) : Promise<{ data: Release }> {
+    try {
+      this.github.git.deleteRef({
+        ...params,
+        ref: `refs/tags/${params.tag_name}`,
+      });
+      return this.github.repos.deleteRelease(params);
+    } catch(err) {
+      console.log('\n\nERROR')
+      console.log(err)
+      return Promise.resolve({ data: {} as Release }) // TODO
+    }
   }
 
   allReleases(params: {

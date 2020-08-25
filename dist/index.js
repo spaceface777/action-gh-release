@@ -54122,15 +54122,15 @@ class Releaser {
             try {
                 console.warn('\n\n1.1\n');
                 const d = yield this.github.repos.deleteRelease(params);
+                console.warn(d);
                 console.warn('\n\n1.2\n');
+                console.warn(Object.assign(Object.assign({}, params), { ref: `tags/${params.tag_name}` }));
                 yield this.github.git.deleteRef(Object.assign(Object.assign({}, params), { ref: `refs/tags/${params.tag_name}` }));
                 console.warn('\n\n1.3\n');
                 return d;
             }
             catch (err) {
-                console.log('\n\nERROR');
-                console.log(err);
-                return Promise.resolve({ data: {} }); // TODO
+                console.log(`\n\nERROR: "${err}"`);
             }
         });
     }

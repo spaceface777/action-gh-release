@@ -65,11 +65,16 @@ export class Releaser {
     repo: string;
     tag_name: string;
     release_id: number;
-  }) : Promise<{ data: Release }> {
+  }) {
     try {
       console.warn('\n\n1.1\n')
       const d = await this.github.repos.deleteRelease(params);
+      console.warn(d)
       console.warn('\n\n1.2\n')
+      console.warn({
+        ...params,
+        ref: `tags/${params.tag_name}`,
+      })
       await this.github.git.deleteRef({
         ...params,
         ref: `refs/tags/${params.tag_name}`,
@@ -77,9 +82,7 @@ export class Releaser {
       console.warn('\n\n1.3\n')
       return d;
     } catch(err) {
-      console.log('\n\nERROR')
-      console.log(err)
-      return Promise.resolve({ data: {} as Release }) // TODO
+      console.log(`\n\nERROR: "${err}"`)
     }
   }
 

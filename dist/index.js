@@ -54118,16 +54118,21 @@ class Releaser {
         return this.github.repos.updateRelease(params);
     }
     deleteRelease(params) {
-        try {
-            const d = this.github.repos.deleteRelease(params);
-            this.github.git.deleteRef(Object.assign(Object.assign({}, params), { ref: `refs/tags/${params.tag_name}` }));
-            return d;
-        }
-        catch (err) {
-            console.log('\n\nERROR');
-            console.log(err);
-            return Promise.resolve({ data: {} }); // TODO
-        }
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                console.warn('\n\n1.1\n');
+                const d = yield this.github.repos.deleteRelease(params);
+                console.warn('\n\n1.2\n');
+                yield this.github.git.deleteRef(Object.assign(Object.assign({}, params), { ref: `refs/tags/${params.tag_name}` }));
+                console.warn('\n\n1.3\n');
+                return d;
+            }
+            catch (err) {
+                console.log('\n\nERROR');
+                console.log(err);
+                return Promise.resolve({ data: {} }); // TODO
+            }
+        });
     }
     allReleases(params) {
         const updatedParams = Object.assign({ per_page: 100 }, params);
@@ -54192,6 +54197,7 @@ exports.release = (config, releaser) => __awaiter(void 0, void 0, void 0, functi
         const body = util_1.releaseBody(config);
         const draft = config.input_draft;
         const prerelease = config.input_prerelease;
+        console.warn(config);
         if (config.input_overwrite) {
             console.warn('\n\n1\n');
             yield releaser.deleteRelease({

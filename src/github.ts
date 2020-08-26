@@ -140,7 +140,7 @@ export const release = async (
   try {
     // you can't get a an existing draft by tag
     // so we must find one in the list of all releases
-    if (config.input_draft) {
+    if (config.input_draft || config.input_attach_only) {
       for await (const response of releaser.allReleases({ owner, repo })) {
         let release = response.data.find((release) => release.tag_name === tag);
         if (release) {

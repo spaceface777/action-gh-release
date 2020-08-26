@@ -54177,7 +54177,7 @@ exports.release = (config, releaser) => __awaiter(void 0, void 0, void 0, functi
     try {
         // you can't get a an existing draft by tag
         // so we must find one in the list of all releases
-        if (config.input_draft) {
+        if (config.input_draft || config.input_attach_only) {
             try {
                 for (var _b = __asyncValues(releaser.allReleases({ owner, repo })), _c; _c = yield _b.next(), !_c.done;) {
                     const response = _c.value;

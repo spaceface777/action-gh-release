@@ -91,6 +91,12 @@ export class Releaser {
       ...params,
       ref: `tags/${params.tag_name}`,
     });
+
+    console.log('\n\n\n\n\n-------------RELEASES AFTER-------------------')
+    for await (const release of this.allReleases({ owner: params.owner, repo: params.repo })) {
+      console.log('\n\n\n\n\n-------------RELEASE-------------------')
+      console.log(release)
+    }
   }
 
   allReleases(params: {

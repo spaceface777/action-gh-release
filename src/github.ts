@@ -3,6 +3,7 @@ import { Config, releaseBody } from "./util";
 import { lstatSync, readFileSync } from "fs";
 import { getType } from "mime";
 import { basename } from "path";
+import { setFailed } from "@actions/core";
 
 export interface ReleaseAsset {
   name: string;
@@ -74,9 +75,9 @@ export class Releaser {
         ...params,
         ref: `tags/${params.tag_name}`,
       });
-    } catch(err) {
-      console.log(`\n\nERROR deleting release:`)
-      console.warn(err)
+    } catch (err) {
+      console.log(`\n\nERROR deleting release:`);
+      console.warn(err);
     }
   }
 
@@ -141,6 +142,9 @@ export const release = async (
       }
     }
     let existingRelease = await releaser.getReleaseByTag({ owner, repo, tag });
+    if (config.input_attach_only) {
+      return existingRelease.data
+    }
 
     const release_id = existingRelease.data.id;
     const target_commitish = existingRelease.data.target_commitish;
@@ -150,7 +154,6 @@ export const release = async (
     const draft = config.input_draft;
     const prerelease = config.input_prerelease;
 
-    console.warn(config)
     if (config.input_overwrite) {
       await releaser.deleteRelease({
         owner,
@@ -177,6 +180,10 @@ export const release = async (
     }
   } catch (error) {
     if (error.status === 404) {
+      if (config.input_attach_only) {
+        console.error(`⚠️ No release found for tag ${config.github_ref}`)
+        setFailed(`No release found for tag ${config.github_ref}`)
+      }
       return await createRelease(config, releaser);
     } else {
       console.log(

@@ -34779,6 +34779,7 @@ exports.parseConfig = (env) => {
         input_body: env.INPUT_BODY,
         input_body_path: env.INPUT_BODY_PATH,
         input_files: exports.parseInputFiles(env.INPUT_FILES || ""),
+        input_attach_only: env.INPUT_ATTACH_ONLY === "true",
         input_overwrite: env.INPUT_OVERWRITE === "true",
         input_create_zip: env.INPUT_CREATE_ZIP === "true",
         input_draft: env.INPUT_DRAFT === "true",
@@ -54104,6 +54105,7 @@ const util_1 = __webpack_require__(629);
 const fs_1 = __webpack_require__(747);
 const mime_1 = __webpack_require__(994);
 const path_1 = __webpack_require__(622);
+const core_1 = __webpack_require__(186);
 class Releaser {
     constructor(github) {
         this.github = github;
@@ -54185,6 +54187,9 @@ exports.release = (config, releaser) => __awaiter(void 0, void 0, void 0, functi
             }
         }
         let existingRelease = yield releaser.getReleaseByTag({ owner, repo, tag });
+        if (config.input_attach_only) {
+            return existingRelease.data;
+        }
         const release_id = existingRelease.data.id;
         const target_commitish = existingRelease.data.target_commitish;
         const tag_name = tag;
@@ -54192,7 +54197,6 @@ exports.release = (config, releaser) => __awaiter(void 0, void 0, void 0, functi
         const body = util_1.releaseBody(config);
         const draft = config.input_draft;
         const prerelease = config.input_prerelease;
-        console.warn(config);
         if (config.input_overwrite) {
             yield releaser.deleteRelease({
                 owner,
@@ -54221,6 +54225,10 @@ exports.release = (config, releaser) => __awaiter(void 0, void 0, void 0, functi
     }
     catch (error) {
         if (error.status === 404) {
+            if (config.input_attach_only) {
+                console.error(`⚠️ No release found for tag ${config.github_ref}`);
+                core_1.setFailed(`No release found for tag ${config.github_ref}`);
+            }
             return yield createRelease(config, releaser);
         }
         else {

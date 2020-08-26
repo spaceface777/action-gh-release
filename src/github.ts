@@ -66,12 +66,25 @@ export class Releaser {
     repo: string;
     release_id: number;
     tag_name: string;
-    target_commitish: string;
-    name: string;
   }): Promise<void> {
-    for await (const release of this.allReleases(params)) { console.log(release) }
-    await this.github.repos.deleteRelease(params);
-    for await (const release of this.allReleases(params)) { console.log(release) }
+    for await (const release of this.allReleases(params)) {
+      console.log('\n\n\n\n\n-------------RELEASE-------------------')
+      console.log(release)
+      release.data.forEach(async (r) => {
+        if (r.tag_name === params.tag_name) {
+          await this.github.repos.deleteRelease({
+            ...params,
+            release_id: r.id,
+          });
+        }
+      });
+    }
+    try {
+      await this.github.repos.deleteRelease(params);
+    } catch (err) {
+      console.log('\n\n\n\n\n-------------ERR-------------------')
+      console.log(err)
+    }
     await this.github.git.deleteRef({
       ...params,
       ref: `tags/${params.tag_name}`,
@@ -163,8 +176,6 @@ export const release = async (
         repo,
         tag_name,
         release_id,
-        target_commitish,
-        name,
       });
       return await createRelease(config, releaser);
     } else {

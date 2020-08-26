@@ -17,8 +17,11 @@ export interface Release {
   upload_url: string;
   html_url: string;
   tag_name: string;
+  name: string;
   body: string;
   target_commitish: string;
+  draft: boolean;
+  prerelease: boolean;
 }
 
 export class Releaser {
@@ -66,42 +69,24 @@ export class Releaser {
     repo: string;
     tag_name: string;
   }): Promise<void> {
-    console.log("\n\n\n\n\n-------------DELETE RELEASE-------------------");
-
-    for await (const release of this.allReleases({
-      owner: params.owner,
-      repo: params.repo,
-    })) {
-      console.log("\n\n\n\n\n-------------RELEASE-------------------");
-      console.log(release);
-      release.data.forEach(async (r) => {
-        if (r.tag_name === params.tag_name) {
-          await this.github.repos.deleteRelease({
-            ...params,
-            release_id: r.id,
-          });
-        }
-      });
+    const repo = { owner: params.owner, repo: params.repo };
+    for await (const response of this.allReleases(repo)) {
+      let release = response.data.find(
+        (release) => release.tag_name === params.tag_name
+      );
+      if (release) {
+        this.github.repos.deleteRelease({
+          ...repo,
+          release_id: release.id,
+          url: release.html_url,
+        });
+      }
     }
-    // try {
-    //   await this.github.repos.deleteRelease(params);
-    // } catch (err) {
-    //   console.log('\n\n\n\n\n-------------ERR-------------------')
-    //   console.log(err)
-    // }
+
     await this.github.git.deleteRef({
-      ...params,
+      ...repo,
       ref: `tags/${params.tag_name}`,
     });
-
-    console.log("\n\n\n\n\n-------------RELEASES AFTER-------------------");
-    for await (const release of this.allReleases({
-      owner: params.owner,
-      repo: params.repo,
-    })) {
-      console.log("\n\n\n\n\n-------------RELEASE-------------------");
-      console.log(release);
-    }
   }
 
   allReleases(params: {
@@ -181,6 +166,21 @@ export const release = async (
     }
     let existingRelease = await releaser.getReleaseByTag({ owner, repo, tag });
     if (config.input_attach_only) {
+      // TODO: Hack
+      if (existingRelease.data.draft && !config.input_draft) {
+        const r = existingRelease.data;
+        await releaser.updateRelease({
+          body: r.body,
+          name: r.name,
+          release_id: r.id,
+          prerelease: r.prerelease,
+          target_commitish: r.target_commitish,
+          tag_name: tag,
+          owner,
+          repo,
+          draft: false,
+        });
+      }
       return existingRelease.data;
     }
 

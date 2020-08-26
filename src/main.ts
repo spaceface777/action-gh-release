@@ -66,9 +66,7 @@ async function run() {
         const out = createWriteStream(out_file);
         const onerror = (err) => console.error(err);
         out.on("close", () => upload(gh, rel.upload_url, out_file));
-        archive.on("error", onerror);
-        archive.pipe(out);
-        console.log(files);
+        archive.on("error", onerror).pipe(out);
         files.forEach((path) => archive.file(path, { name: path }));
         archive.finalize();
       } else {

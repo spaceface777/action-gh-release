@@ -219,9 +219,7 @@ const createRelease = async (
     return release.data;
   } catch (error) {
     // presume a race with competing metrix runs
-    console.log(
-      `release failed with status: ${error.status}, retrying...`
-    );
+    console.log(`release failed with status: ${error.status}, retrying...`);
     return createRelease(config, releaser);
   }
 };

@@ -12,8 +12,8 @@ async function run() {
   try {
     const config = parseConfig(env);
     if (!config.input_run_if) {
-      console.warn('warn: skipping GitHub Release creation')
-      return
+      console.warn("warn: skipping GitHub Release creation");
+      return;
     }
 
     if (!config.input_tag_name && !isTag(config.github_ref)) {

@@ -82,16 +82,20 @@ describe("util", () => {
         github_ref: "",
         github_repository: "",
         github_token: "",
+        input_attach_only: false,
         input_body: undefined,
         input_body_path: undefined,
+        input_create_only: false,
         input_create_zip: false,
         input_draft: false,
         input_overwrite: false,
         input_prerelease: false,
+        input_filename: "",
         input_files: [],
         input_name: undefined,
         input_tag_name: undefined,
         input_fail_on_unmatched_files: false,
+        input_run_if: true,
       });
     });
   });

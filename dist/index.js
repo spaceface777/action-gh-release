@@ -25630,6 +25630,10 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const config = util_1.parseConfig(process_1.env);
+            if (!config.input_run_if) {
+                console.warn('⚠️ Skipping GitHub Release creation');
+                return;
+            }
             if (!config.input_tag_name && !util_1.isTag(config.github_ref)) {
                 throw new Error(`⚠️ GitHub Releases requires a tag`);
             }
@@ -34773,6 +34777,7 @@ exports.parseConfig = (env) => {
         github_token: env.GITHUB_TOKEN || "",
         github_ref: env.GITHUB_REF || "",
         github_repository: env.GITHUB_REPOSITORY || "",
+        input_run_if: (env.INPUT_RUN_IF || "true") === "true",
         input_name: env.INPUT_NAME,
         input_tag_name: env.INPUT_TAG_NAME,
         input_body: env.INPUT_BODY,

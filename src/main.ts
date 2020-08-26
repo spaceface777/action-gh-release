@@ -11,6 +11,11 @@ import { join } from "path";
 async function run() {
   try {
     const config = parseConfig(env);
+    if (!config.input_run_if) {
+      console.warn('⚠️ Skipping GitHub Release creation')
+      return
+    }
+
     if (!config.input_tag_name && !isTag(config.github_ref)) {
       throw new Error(`⚠️ GitHub Releases requires a tag`);
     }

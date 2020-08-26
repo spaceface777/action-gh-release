@@ -3,6 +3,9 @@ name: 'GH Release'
 description: 'Github Action for creating Github Releases'
 author: 'spaceface777'
 inputs:
+  run_if:
+    description: 'Whether to actually run this action. Defaults to true'
+    required: false
   body:
     description: 'Note-worthy description of changes in release'
     required: false

@@ -6,6 +6,7 @@ export interface Config {
   github_ref: string;
   github_repository: string;
   // user provided
+  input_run_if?: boolean;
   input_name?: string;
   input_tag_name?: string;
   input_body?: string;
@@ -46,6 +47,7 @@ export const parseConfig = (env: Env): Config => {
     github_token: env.GITHUB_TOKEN || "",
     github_ref: env.GITHUB_REF || "",
     github_repository: env.GITHUB_REPOSITORY || "",
+    input_run_if: (env.INPUT_RUN_IF || "true") === "true",
     input_name: env.INPUT_NAME,
     input_tag_name: env.INPUT_TAG_NAME,
     input_body: env.INPUT_BODY,

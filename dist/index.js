@@ -25668,7 +25668,7 @@ function run() {
                 }
                 if (config.input_create_zip) {
                     const archive = archiver_1.default("zip", { zlib: { level: 9 } }); // Max. compression
-                    const out_file = path_1.join(os_1.tmpdir(), "upload.zip");
+                    const out_file = path_1.join(os_1.tmpdir(), config.input_filename || "upload.zip");
                     const out = fs_1.createWriteStream(out_file);
                     const onerror = err => { /*setFailed("Failed to create zip archive"); */ console.error(err); };
                     out.on("close", () => __awaiter(this, void 0, void 0, function* () {
@@ -25677,7 +25677,7 @@ function run() {
                     archive.on("error", onerror);
                     archive.pipe(out);
                     console.log(files);
-                    files.forEach((path) => { /* console.log(path); */ archive.append(path, { name: path }); });
+                    files.forEach((path) => { /* console.log(path); */ archive.file(path, { name: path }); });
                     archive.finalize();
                 }
                 else {
@@ -34780,6 +34780,7 @@ exports.parseConfig = (env) => {
         input_body: env.INPUT_BODY,
         input_body_path: env.INPUT_BODY_PATH,
         input_files: exports.parseInputFiles(env.INPUT_FILES || ""),
+        input_filename: env.INPUT_FILENAME || "",
         input_attach_only: env.INPUT_ATTACH_ONLY === "true",
         input_overwrite: env.INPUT_OVERWRITE === "true",
         input_create_zip: env.INPUT_CREATE_ZIP === "true",
@@ -54143,14 +54144,14 @@ exports.asset = (path) => {
         name: path_1.basename(path),
         mime: exports.mimeOrDefault(path),
         size: fs_1.lstatSync(path).size,
-        file: fs_1.readFileSync(path),
+        data: fs_1.readFileSync(path),
     };
 };
 exports.mimeOrDefault = (path) => {
     return mime_1.getType(path) || "application/octet-stream";
 };
 exports.upload = (gh, url, path) => __awaiter(void 0, void 0, void 0, function* () {
-    let { name, size, mime, file } = exports.asset(path);
+    let { name, size, mime, data } = exports.asset(path);
     console.log(`⬆️ Uploading ${name}...`);
     return yield gh.repos.uploadReleaseAsset({
         url,
@@ -54159,7 +54160,7 @@ exports.upload = (gh, url, path) => __awaiter(void 0, void 0, void 0, function* 
             "content-type": mime,
         },
         name,
-        file,
+        data,
     });
 });
 exports.release = (config, releaser) => __awaiter(void 0, void 0, void 0, function* () {

@@ -27,6 +27,12 @@ inputs:
   overwrite:
     description: 'Whether to overwrite existing tags and releases'
     required: false
+  create_zip:
+    description: 'Whether to create a zip archive out of the given input files'
+    required: false
+  attach_only:
+    description: 'Whether to only attach files, and error if the release does not exist'
+    required: false
   fail_on_unmatched_files:
     description: 'Fails if any of the `files` globs match nothing. Defaults to false'
     required: false

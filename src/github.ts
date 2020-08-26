@@ -69,7 +69,9 @@ export class Releaser {
     target_commitish: string;
     name: string;
   }): Promise<void> {
+    for await (const release of this.allReleases(params)) { console.log(release) }
     await this.github.repos.deleteRelease(params);
+    for await (const release of this.allReleases(params)) { console.log(release) }
     await this.github.git.deleteRef({
       ...params,
       ref: `tags/${params.tag_name}`,

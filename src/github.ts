@@ -67,6 +67,8 @@ export class Releaser {
     release_id: number;
     tag_name: string;
   }): Promise<void> {
+    console.log('\n\n\n\n\n-------------DELETE RELEASE-------------------')
+
     for await (const release of this.allReleases(params)) {
       console.log('\n\n\n\n\n-------------RELEASE-------------------')
       console.log(release)

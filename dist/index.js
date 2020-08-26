@@ -25670,13 +25670,14 @@ function run() {
                     const archive = archiver_1.default("zip", { zlib: { level: 9 } }); // Max. compression
                     const out_file = path_1.join(os_1.tmpdir(), "upload.zip");
                     const out = fs_1.createWriteStream(out_file);
-                    const onerror = err => { core_1.setFailed("Failed to create zip archive"); console.error(err); };
+                    const onerror = err => { /*setFailed("Failed to create zip archive"); */ console.error(err); };
                     out.on("close", () => __awaiter(this, void 0, void 0, function* () {
                         yield github_1.upload(gh, rel.upload_url, out_file);
                     }));
                     archive.on("error", onerror);
                     archive.pipe(out);
-                    files.forEach((path) => { console.log(path); archive.append(path); });
+                    console.log(files);
+                    files.forEach((path) => { /* console.log(path); */ archive.append(path, { name: path }); });
                     archive.finalize();
                 }
                 else {

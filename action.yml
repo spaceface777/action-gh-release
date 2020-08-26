@@ -24,6 +24,9 @@ inputs:
   files:
     description: 'Newline-delimited list of path globs for asset files to upload'
     required: false
+  filename:
+    description: 'What to name the uploaded asset'
+    required: false
   overwrite:
     description: 'Whether to overwrite existing tags and releases'
     required: false

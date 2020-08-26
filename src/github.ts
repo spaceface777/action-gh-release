@@ -188,10 +188,12 @@ export const release = async (
   } catch (error) {
     if (error.status === 404) {
       if (config.input_attach_only) {
-        console.error(`⚠️ No release found for tag ${config.github_ref}`)
-        setFailed(`No release found for tag ${config.github_ref}`)
+        console.error(error)
+        console.error(`⚠️ No release found for tag ${tag}`)
+        setFailed(`No release found for tag ${tag}`)
+      } else {
+        return await createRelease(config, releaser);
       }
-      return await createRelease(config, releaser);
     } else {
       console.log(
         `⚠️ Unexpected error fetching GitHub release for tag ${config.github_ref}: ${error}`

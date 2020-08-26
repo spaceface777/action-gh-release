@@ -64,7 +64,6 @@ export class Releaser {
   async deleteRelease(params: {
     owner: string;
     repo: string;
-    release_id: number;
     tag_name: string;
   }): Promise<void> {
     console.log('\n\n\n\n\n-------------DELETE RELEASE-------------------')
@@ -81,12 +80,12 @@ export class Releaser {
         }
       });
     }
-    try {
-      await this.github.repos.deleteRelease(params);
-    } catch (err) {
-      console.log('\n\n\n\n\n-------------ERR-------------------')
-      console.log(err)
-    }
+    // try {
+    //   await this.github.repos.deleteRelease(params);
+    // } catch (err) {
+    //   console.log('\n\n\n\n\n-------------ERR-------------------')
+    //   console.log(err)
+    // }
     await this.github.git.deleteRef({
       ...params,
       ref: `tags/${params.tag_name}`,
@@ -155,6 +154,15 @@ export const release = async (
   const tag =
     config.input_tag_name || config.github_ref.replace("refs/tags/", "");
   try {
+    if (config.input_overwrite) {
+      await releaser.deleteRelease({
+        owner,
+        repo,
+        tag_name: tag,
+      });
+      return await createRelease(config, releaser);
+    }
+
     // you can't get a an existing draft by tag
     // so we must find one in the list of all releases
     if (config.input_draft || config.input_attach_only) {
@@ -177,29 +185,18 @@ export const release = async (
     const body = releaseBody(config);
     const draft = config.input_draft;
     const prerelease = config.input_prerelease;
-
-    if (config.input_overwrite) {
-      await releaser.deleteRelease({
-        owner,
-        repo,
-        tag_name,
-        release_id,
-      });
-      return await createRelease(config, releaser);
-    } else {
-      const release = await releaser.updateRelease({
-        owner,
-        repo,
-        release_id,
-        tag_name,
-        target_commitish,
-        name,
-        body,
-        draft,
-        prerelease,
-      });
-      return release.data;
-    }
+    const release = await releaser.updateRelease({
+      owner,
+      repo,
+      release_id,
+      tag_name,
+      target_commitish,
+      name,
+      body,
+      draft,
+      prerelease,
+    });
+    return release.data;
   } catch (error) {
     if (config.input_attach_only) {
       console.error(error);

@@ -12,20 +12,20 @@ async function run() {
   try {
     const config = parseConfig(env);
     if (!config.input_run_if) {
-      console.warn('⚠️ Skipping GitHub Release creation')
+      console.warn('warn: skipping GitHub Release creation')
       return
     }
 
     if (!config.input_tag_name && !isTag(config.github_ref)) {
-      throw new Error(`⚠️ GitHub Releases requires a tag`);
+      throw new Error(`GitHub Releases require a valid tag`);
     }
-    if (config.input_files) {
+    if (config.input_files && !config.input_create_only) {
       const patterns = unmatchedPatterns(config.input_files);
       patterns.forEach((pattern) =>
-        console.warn(`🤔 Pattern '${pattern}' does not match any files.`)
+        console.warn(`warn: pattern '${pattern}' did not match any files`)
       );
       if (patterns.length > 0 && config.input_fail_on_unmatched_files) {
-        throw new Error(`⚠️ There were unmatched files`);
+        throw new Error(`there were unmatched files`);
       }
     }
     GitHub.plugin([
@@ -55,8 +55,8 @@ async function run() {
     let rel = await release(config, new Releaser(gh));
     if (config.input_files) {
       const files = paths(config.input_files);
-      if (files.length == 0) {
-        console.warn(`🤔 ${config.input_files} not include valid file.`);
+      if (files.length == 0 && !config.input_create_only) {
+        console.warn(`warn: No files included`);
       }
       if (config.input_create_zip) {
         const archive = Archiver("zip", { zlib: { level: 9 } }); // Max. compression
@@ -75,7 +75,7 @@ async function run() {
         });
       }
     }
-    console.log(`🎉 Release ready at ${rel.html_url}`);
+    console.log(`release ready at ${rel.html_url}`);
     setOutput("url", rel.html_url);
   } catch (error) {
     setFailed(error.message);

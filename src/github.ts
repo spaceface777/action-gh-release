@@ -68,17 +68,12 @@ export class Releaser {
     tag_name: string;
     target_commitish: string;
     name: string;
-  }) {
-    try {
-      await this.github.repos.deleteRelease(params);
-      await this.github.git.deleteRef({
-        ...params,
-        ref: `tags/${params.tag_name}`,
-      });
-    } catch (err) {
-      console.log(`\n\nERROR deleting release:`);
-      console.warn(err);
-    }
+  }): Promise<void> {
+    await this.github.repos.deleteRelease(params);
+    await this.github.git.deleteRef({
+      ...params,
+      ref: `tags/${params.tag_name}`,
+    });
   }
 
   allReleases(params: {
@@ -107,7 +102,6 @@ export const mimeOrDefault = (path: string): string => {
 
 export const upload = async (
   gh: GitHub,
-  // config: Config,
   url: string,
   path: string
 ): Promise<any> => {
@@ -125,8 +119,8 @@ export const upload = async (
     });
   } catch (err) {
     // TODO: Delete and reupload the asset if it exists and `overwrite` was passed
+    // await gh.repos.deleteReleaseAsset({})
     console.log(err);
-    // await gh.repos.deleteReleaseAsset({  })
   }
 };
 
@@ -188,13 +182,13 @@ export const release = async (
   } catch (error) {
     if (config.input_attach_only) {
       console.error(error);
-      setFailed(`No release found for tag ${tag}`);
+      setFailed(`No release found for tag '${tag}'`);
       throw error;
     } else if (error.status === 404) {
       return await createRelease(config, releaser);
     } else {
       console.log(
-        `⚠️ Unexpected error fetching GitHub release for tag ${config.github_ref}: ${error}`
+        `error fetching GitHub release for tag ${config.github_ref}: ${error}`
       );
       throw error;
     }
@@ -212,9 +206,8 @@ const createRelease = async (
   const body = releaseBody(config);
   const draft = config.input_draft;
   const prerelease = config.input_prerelease;
-  console.log(`👩‍🏭 Creating new GitHub release for tag ${tag_name}...`);
   try {
-    let release = await releaser.createRelease({
+    const release = await releaser.createRelease({
       owner,
       repo,
       tag_name,
@@ -227,7 +220,7 @@ const createRelease = async (
   } catch (error) {
     // presume a race with competing metrix runs
     console.log(
-      `⚠️ GitHub release failed with status: ${error.status}, retrying...`
+      `release failed with status: ${error.status}, retrying...`
     );
     return createRelease(config, releaser);
   }

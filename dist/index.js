@@ -25631,17 +25631,17 @@ function run() {
         try {
             const config = util_1.parseConfig(process_1.env);
             if (!config.input_run_if) {
-                console.warn('⚠️ Skipping GitHub Release creation');
+                console.warn('warn: skipping GitHub Release creation');
                 return;
             }
             if (!config.input_tag_name && !util_1.isTag(config.github_ref)) {
-                throw new Error(`⚠️ GitHub Releases requires a tag`);
+                throw new Error(`GitHub Releases require a valid tag`);
             }
-            if (config.input_files) {
+            if (config.input_files && !config.input_create_only) {
                 const patterns = util_1.unmatchedPatterns(config.input_files);
-                patterns.forEach((pattern) => console.warn(`🤔 Pattern '${pattern}' does not match any files.`));
+                patterns.forEach((pattern) => console.warn(`warn: pattern '${pattern}' did not match any files`));
                 if (patterns.length > 0 && config.input_fail_on_unmatched_files) {
-                    throw new Error(`⚠️ There were unmatched files`);
+                    throw new Error(`there were unmatched files`);
                 }
             }
             github_2.GitHub.plugin([
@@ -25667,8 +25667,8 @@ function run() {
             let rel = yield github_1.release(config, new github_1.Releaser(gh));
             if (config.input_files) {
                 const files = util_1.paths(config.input_files);
-                if (files.length == 0) {
-                    console.warn(`🤔 ${config.input_files} not include valid file.`);
+                if (files.length == 0 && !config.input_create_only) {
+                    console.warn(`warn: No files included`);
                 }
                 if (config.input_create_zip) {
                     const archive = archiver_1.default("zip", { zlib: { level: 9 } }); // Max. compression
@@ -25688,7 +25688,7 @@ function run() {
                     }));
                 }
             }
-            console.log(`🎉 Release ready at ${rel.html_url}`);
+            console.log(`release ready at ${rel.html_url}`);
             core_1.setOutput("url", rel.html_url);
         }
         catch (error) {
@@ -34784,6 +34784,7 @@ exports.parseConfig = (env) => {
         input_body_path: env.INPUT_BODY_PATH,
         input_files: exports.parseInputFiles(env.INPUT_FILES || ""),
         input_filename: env.INPUT_FILENAME || "",
+        input_create_only: env.INPUT_CREATE_ONLY === "true",
         input_attach_only: env.INPUT_ATTACH_ONLY === "true",
         input_overwrite: env.INPUT_OVERWRITE === "true",
         input_create_zip: env.INPUT_CREATE_ZIP === "true",
@@ -54126,14 +54127,8 @@ class Releaser {
     }
     deleteRelease(params) {
         return __awaiter(this, void 0, void 0, function* () {
-            try {
-                yield this.github.repos.deleteRelease(params);
-                yield this.github.git.deleteRef(Object.assign(Object.assign({}, params), { ref: `tags/${params.tag_name}` }));
-            }
-            catch (err) {
-                console.log(`\n\nERROR deleting release:`);
-                console.warn(err);
-            }
+            yield this.github.repos.deleteRelease(params);
+            yield this.github.git.deleteRef(Object.assign(Object.assign({}, params), { ref: `tags/${params.tag_name}` }));
         });
     }
     allReleases(params) {
@@ -54153,9 +54148,7 @@ exports.asset = (path) => {
 exports.mimeOrDefault = (path) => {
     return mime_1.getType(path) || "application/octet-stream";
 };
-exports.upload = (gh, 
-// config: Config,
-url, path) => __awaiter(void 0, void 0, void 0, function* () {
+exports.upload = (gh, url, path) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let { name, size, mime, data } = exports.asset(path);
         console.log(`⬆️ Uploading ${name}...`);
@@ -54171,8 +54164,8 @@ url, path) => __awaiter(void 0, void 0, void 0, function* () {
     }
     catch (err) {
         // TODO: Delete and reupload the asset if it exists and `overwrite` was passed
+        // await gh.repos.deleteReleaseAsset({})
         console.log(err);
-        // await gh.repos.deleteReleaseAsset({  })
     }
 });
 exports.release = (config, releaser) => __awaiter(void 0, void 0, void 0, function* () {
@@ -54240,14 +54233,14 @@ exports.release = (config, releaser) => __awaiter(void 0, void 0, void 0, functi
     catch (error) {
         if (config.input_attach_only) {
             console.error(error);
-            core_1.setFailed(`No release found for tag ${tag}`);
+            core_1.setFailed(`No release found for tag '${tag}'`);
             throw error;
         }
         else if (error.status === 404) {
             return yield createRelease(config, releaser);
         }
         else {
-            console.log(`⚠️ Unexpected error fetching GitHub release for tag ${config.github_ref}: ${error}`);
+            console.log(`error fetching GitHub release for tag ${config.github_ref}: ${error}`);
             throw error;
         }
     }
@@ -54259,9 +54252,8 @@ const createRelease = (config, releaser) => __awaiter(void 0, void 0, void 0, fu
     const body = util_1.releaseBody(config);
     const draft = config.input_draft;
     const prerelease = config.input_prerelease;
-    console.log(`👩‍🏭 Creating new GitHub release for tag ${tag_name}...`);
     try {
-        let release = yield releaser.createRelease({
+        const release = yield releaser.createRelease({
             owner,
             repo,
             tag_name,
@@ -54274,7 +54266,7 @@ const createRelease = (config, releaser) => __awaiter(void 0, void 0, void 0, fu
     }
     catch (error) {
         // presume a race with competing metrix runs
-        console.log(`⚠️ GitHub release failed with status: ${error.status}, retrying...`);
+        console.log(`release failed with status: ${error.status}, retrying...`);
         return createRelease(config, releaser);
     }
 });

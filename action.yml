@@ -39,6 +39,9 @@ inputs:
   attach_only:
     description: 'Whether to only attach files, and error if the release does not exist'
     required: false
+  attach_only:
+    description: 'Whether to only create the release, and not attach any files to it'
+    required: false
   fail_on_unmatched_files:
     description: 'Fails if any of the `files` globs match nothing. Defaults to false'
     required: false

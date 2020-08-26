@@ -13,6 +13,7 @@ export interface Config {
   input_body_path?: string;
   input_files?: string[];
   input_filename?: string;
+  input_create_only?: boolean;
   input_attach_only?: boolean;
   input_overwrite?: boolean;
   input_create_zip?: boolean;
@@ -54,6 +55,7 @@ export const parseConfig = (env: Env): Config => {
     input_body_path: env.INPUT_BODY_PATH,
     input_files: parseInputFiles(env.INPUT_FILES || ""),
     input_filename: env.INPUT_FILENAME || "",
+    input_create_only: env.INPUT_CREATE_ONLY === "true",
     input_attach_only: env.INPUT_ATTACH_ONLY === "true",
     input_overwrite: env.INPUT_OVERWRITE === "true",
     input_create_zip: env.INPUT_CREATE_ZIP === "true",

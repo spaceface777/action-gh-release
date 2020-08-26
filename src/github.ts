@@ -107,20 +107,27 @@ export const mimeOrDefault = (path: string): string => {
 
 export const upload = async (
   gh: GitHub,
+  // config: Config,
   url: string,
   path: string
 ): Promise<any> => {
-  let { name, size, mime, data } = asset(path);
-  console.log(`⬆️ Uploading ${name}...`);
-  return await gh.repos.uploadReleaseAsset({
-    url,
-    headers: {
-      "content-length": size,
-      "content-type": mime,
-    },
-    name,
-    data,
-  });
+  try {
+    let { name, size, mime, data } = asset(path);
+    console.log(`⬆️ Uploading ${name}...`);
+    return await gh.repos.uploadReleaseAsset({
+      url,
+      headers: {
+        "content-length": size,
+        "content-type": mime,
+      },
+      name,
+      data,
+    });
+  } catch(err) {
+    // TODO: Delete and reupload the asset if it exists and `overwrite` was passed
+    console.log(err)
+    // await gh.repos.deleteReleaseAsset({  })
+  }
 };
 
 export const release = async (

@@ -66,11 +66,14 @@ export class Releaser {
     repo: string;
     tag_name: string;
   }): Promise<void> {
-    console.log('\n\n\n\n\n-------------DELETE RELEASE-------------------')
+    console.log("\n\n\n\n\n-------------DELETE RELEASE-------------------");
 
-    for await (const release of this.allReleases({ owner: params.owner, repo: params.repo })) {
-      console.log('\n\n\n\n\n-------------RELEASE-------------------')
-      console.log(release)
+    for await (const release of this.allReleases({
+      owner: params.owner,
+      repo: params.repo,
+    })) {
+      console.log("\n\n\n\n\n-------------RELEASE-------------------");
+      console.log(release);
       release.data.forEach(async (r) => {
         if (r.tag_name === params.tag_name) {
           await this.github.repos.deleteRelease({
@@ -91,10 +94,13 @@ export class Releaser {
       ref: `tags/${params.tag_name}`,
     });
 
-    console.log('\n\n\n\n\n-------------RELEASES AFTER-------------------')
-    for await (const release of this.allReleases({ owner: params.owner, repo: params.repo })) {
-      console.log('\n\n\n\n\n-------------RELEASE-------------------')
-      console.log(release)
+    console.log("\n\n\n\n\n-------------RELEASES AFTER-------------------");
+    for await (const release of this.allReleases({
+      owner: params.owner,
+      repo: params.repo,
+    })) {
+      console.log("\n\n\n\n\n-------------RELEASE-------------------");
+      console.log(release);
     }
   }
 

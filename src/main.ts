@@ -53,8 +53,8 @@ async function run() {
       },
     });
     let rel = await release(config, new Releaser(gh));
-    console.log('\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nGOT RELEASE')
-    console.log(rel)
+    console.log("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nGOT RELEASE");
+    console.log(rel);
     if (config.input_files) {
       const files = paths(config.input_files);
       if (files.length == 0 && !config.input_create_only) {

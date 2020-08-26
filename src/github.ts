@@ -123,9 +123,9 @@ export const upload = async (
       name,
       data,
     });
-  } catch(err) {
+  } catch (err) {
     // TODO: Delete and reupload the asset if it exists and `overwrite` was passed
-    console.log(err)
+    console.log(err);
     // await gh.repos.deleteReleaseAsset({  })
   }
 };
@@ -150,7 +150,7 @@ export const release = async (
     }
     let existingRelease = await releaser.getReleaseByTag({ owner, repo, tag });
     if (config.input_attach_only) {
-      return existingRelease.data
+      return existingRelease.data;
     }
 
     const release_id = existingRelease.data.id;
@@ -186,14 +186,12 @@ export const release = async (
       return release.data;
     }
   } catch (error) {
-    if (error.status === 404) {
-      if (config.input_attach_only) {
-        console.error(error)
-        console.error(`⚠️ No release found for tag ${tag}`)
-        setFailed(`No release found for tag ${tag}`)
-      } else {
-        return await createRelease(config, releaser);
-      }
+    if (config.input_attach_only) {
+      console.error(error);
+      setFailed(`No release found for tag ${tag}`);
+      throw error;
+    } else if (error.status === 404) {
+      return await createRelease(config, releaser);
     } else {
       console.log(
         `⚠️ Unexpected error fetching GitHub release for tag ${config.github_ref}: ${error}`

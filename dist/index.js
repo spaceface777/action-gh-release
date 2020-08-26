@@ -25670,14 +25670,12 @@ function run() {
                     const archive = archiver_1.default("zip", { zlib: { level: 9 } }); // Max. compression
                     const out_file = path_1.join(os_1.tmpdir(), config.input_filename || "upload.zip");
                     const out = fs_1.createWriteStream(out_file);
-                    const onerror = err => { /*setFailed("Failed to create zip archive"); */ console.error(err); };
-                    out.on("close", () => __awaiter(this, void 0, void 0, function* () {
-                        yield github_1.upload(gh, rel.upload_url, out_file);
-                    }));
+                    const onerror = (err) => console.error(err);
+                    out.on("close", () => github_1.upload(gh, rel.upload_url, out_file));
                     archive.on("error", onerror);
                     archive.pipe(out);
                     console.log(files);
-                    files.forEach((path) => { /* console.log(path); */ archive.file(path, { name: path }); });
+                    files.forEach((path) => archive.file(path, { name: path }));
                     archive.finalize();
                 }
                 else {
@@ -54235,11 +54233,12 @@ exports.release = (config, releaser) => __awaiter(void 0, void 0, void 0, functi
         }
     }
     catch (error) {
-        if (error.status === 404) {
-            if (config.input_attach_only) {
-                console.error(`⚠️ No release found for tag ${config.github_ref}`);
-                core_1.setFailed(`No release found for tag ${config.github_ref}`);
-            }
+        if (config.input_attach_only) {
+            console.error(error);
+            core_1.setFailed(`No release found for tag ${tag}`);
+            throw error;
+        }
+        else if (error.status === 404) {
             return yield createRelease(config, releaser);
         }
         else {

@@ -57,14 +57,12 @@ async function run() {
         const archive = Archiver("zip", { zlib: { level: 9 } }); // Max. compression
         const out_file = join(tmpdir(), config.input_filename || "upload.zip");
         const out = createWriteStream(out_file);
-        const onerror = err => { /*setFailed("Failed to create zip archive"); */ console.error(err) }
-        out.on("close", async () => {
-          await upload(gh, rel.upload_url, out_file);
-        });
+        const onerror = (err) => console.error(err);
+        out.on("close", () => upload(gh, rel.upload_url, out_file));
         archive.on("error", onerror);
         archive.pipe(out);
-        console.log(files)
-        files.forEach((path) => { /* console.log(path); */ archive.file(path, { name: path }) });
+        console.log(files);
+        files.forEach((path) => archive.file(path, { name: path }));
         archive.finalize();
       } else {
         files.forEach(async (path) => {

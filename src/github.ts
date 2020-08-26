@@ -69,7 +69,7 @@ export class Releaser {
   }): Promise<void> {
     console.log('\n\n\n\n\n-------------DELETE RELEASE-------------------')
 
-    for await (const release of this.allReleases(params)) {
+    for await (const release of this.allReleases({ owner: params.owner, repo: params.repo })) {
       console.log('\n\n\n\n\n-------------RELEASE-------------------')
       console.log(release)
       release.data.forEach(async (r) => {

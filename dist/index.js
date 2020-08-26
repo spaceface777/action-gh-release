@@ -54150,18 +54150,27 @@ exports.asset = (path) => {
 exports.mimeOrDefault = (path) => {
     return mime_1.getType(path) || "application/octet-stream";
 };
-exports.upload = (gh, url, path) => __awaiter(void 0, void 0, void 0, function* () {
-    let { name, size, mime, data } = exports.asset(path);
-    console.log(`⬆️ Uploading ${name}...`);
-    return yield gh.repos.uploadReleaseAsset({
-        url,
-        headers: {
-            "content-length": size,
-            "content-type": mime,
-        },
-        name,
-        data,
-    });
+exports.upload = (gh, 
+// config: Config,
+url, path) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        let { name, size, mime, data } = exports.asset(path);
+        console.log(`⬆️ Uploading ${name}...`);
+        return yield gh.repos.uploadReleaseAsset({
+            url,
+            headers: {
+                "content-length": size,
+                "content-type": mime,
+            },
+            name,
+            data,
+        });
+    }
+    catch (err) {
+        // TODO: Delete and reupload the asset if it exists and `overwrite` was passed
+        console.log(err);
+        // await gh.repos.deleteReleaseAsset({  })
+    }
 });
 exports.release = (config, releaser) => __awaiter(void 0, void 0, void 0, function* () {
     var e_1, _a;
